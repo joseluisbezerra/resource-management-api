@@ -12,7 +12,7 @@ urlpatterns = [
 
 # API v1
 urlpatterns += [
-    path('v1/', include(
+    path('api/v1/', include(
         [
             path('users/', include('api.apps.user.urls'))
         ]
