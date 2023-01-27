@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'api.apps.utils.apps.UtilsConfig',
+    'api.apps.core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -92,7 +93,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 
-LANGUAGE_CODE = 'pt-br'
+LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'America/Sao_Paulo'
 
@@ -100,6 +101,9 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Custom User
+
+AUTH_USER_MODEL = 'core.User'
 
 # Static files (CSS, JavaScript, Images)
 
