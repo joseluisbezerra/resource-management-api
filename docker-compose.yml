@@ -3,7 +3,10 @@ version: "3.3"
 services:
   web:
     build: .
-    command: python /code/manage.py runserver 0.0.0.0:8000
+    command: >
+      sh -c "python /code/manage.py wait_for_db &&
+             python /code/manage.py migrate &&
+             python /code/manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
