@@ -24,8 +24,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'rest_framework',
+
     'api.apps.utils.apps.UtilsConfig',
     'api.apps.core.apps.CoreConfig',
+    'api.apps.user.apps.UserConfig',
 ]
 
 MIDDLEWARE = [
@@ -104,6 +107,17 @@ USE_TZ = True
 # Custom User
 
 AUTH_USER_MODEL = 'core.User'
+
+# Django REST Framework Settings
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
 
 # Static files (CSS, JavaScript, Images)
 
