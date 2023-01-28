@@ -14,6 +14,7 @@ urlpatterns = [
 urlpatterns += [
     path('api/v1/', include(
         [
+            path('', include('api.apps.resource_allocation.urls')),
             path('users/', include('api.apps.user.urls'))
         ]
     ))
