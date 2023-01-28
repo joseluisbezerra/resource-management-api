@@ -1,13 +1,22 @@
 from rest_framework_simplejwt import views as jwt_views
-from django.urls import path
+from rest_framework.routers import DefaultRouter
+from django.urls import (
+    path,
+    include
+)
 
 from api.apps.user import views
 
+router = DefaultRouter()
 
 app_name = 'user'
 
 
+router.register('', views.ManageUsersViewSet)
+
 urlpatterns = [
+    path('', include(router.urls)),
+
     path(
         'me/',
         views.ManageUserView.as_view(),
