@@ -104,10 +104,19 @@ class ListUsersTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
+    def test_filter_common_users(self):
+        response = self.client.get(
+            USERS_URL,
+            {'type': 'common'}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+
     def test_filter_active_users(self):
         response = self.client.get(
             USERS_URL,
-            {'type': 'active'}
+            {'status': 'active'}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -116,7 +125,7 @@ class ListUsersTests(APITestCase):
     def test_filter_inactive_users(self):
         response = self.client.get(
             USERS_URL,
-            {'type': 'inactive'}
+            {'status': 'inactive'}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
