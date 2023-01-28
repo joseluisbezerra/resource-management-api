@@ -9,13 +9,17 @@ from django.db.models import Q
 from django.db.models.deletion import ProtectedError
 
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 
 
 class ResourceViewSet(viewsets.ModelViewSet):
     queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (
+        IsAuthenticated,
+        IsAdminOrReadOnly
+    )
 
     def get_queryset(self):
         queryset = self.queryset.order_by('id')
@@ -42,9 +46,9 @@ class ResourceViewSet(viewsets.ModelViewSet):
                         ).values('resource_id')
                     )
                 elif 'unallocated' in status_list:
-                    query &= Q(
+                    queryset = queryset.exclude(
                         id__in=Allocation.objects.filter(
-                            return_date__isnull=False
+                            return_date__isnull=True
                         ).values('resource_id')
                     )
 
