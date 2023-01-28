@@ -2,6 +2,7 @@ from api.apps.user.serializers import (
     UserSerializer
 )
 
+from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.db.models.deletion import ProtectedError
 
@@ -21,9 +22,34 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
 
 
 class ManageUsersViewSet(viewsets.ModelViewSet):
-    queryset = get_user_model().objects.all().order_by('id')
+    queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminUser,)
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        if self.action == 'list':
+            types = self.request.query_params.getlist('type')
+            name = self.request.query_params.get('name')
+
+            query = Q()
+
+            if name:
+                query &= Q(name__unaccent__icontains=name)
+
+            if types:
+                if 'actives' in types:
+                    query &= Q(is_active=True)
+                elif 'inactives' in types:
+                    query &= Q(is_active=False)
+
+                if 'admins' in types:
+                    query &= Q(is_staff=True)
+
+            queryset = queryset.filter(query)
+
+        return queryset.order_by('id')
 
     def perform_destroy(self, instance):
         try:

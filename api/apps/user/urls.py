@@ -15,8 +15,6 @@ app_name = 'user'
 router.register('', views.ManageUsersViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
-
     path(
         'me/',
         views.ManageUserView.as_view(),
@@ -33,5 +31,7 @@ urlpatterns = [
         'token/refresh/',
         jwt_views.TokenRefreshView.as_view(),
         name='token_refresh'
-    )
+    ),
+
+    path('', include(router.urls))
 ]
