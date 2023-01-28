@@ -39,12 +39,12 @@ class ManageUsersViewSet(viewsets.ModelViewSet):
                 query &= Q(name__unaccent__icontains=name)
 
             if types:
-                if 'actives' in types:
+                if 'active' in types:
                     query &= Q(is_active=True)
-                elif 'inactives' in types:
+                elif 'inactive' in types:
                     query &= Q(is_active=False)
 
-                if 'admins' in types:
+                if 'admin' in types:
                     query &= Q(is_staff=True)
 
             queryset = queryset.filter(query)
