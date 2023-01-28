@@ -81,16 +81,7 @@ class AllocationViewSet(mixins.CreateModelMixin,
     queryset = Allocation.objects.order_by('-allocation_date')
     serializer_class = AllocationSerializer
 
-    def get_queryset(self):
-        queryset = self.queryset.filter(
-            resource_id=self.kwargs.get("resource_pk")
-        )
-
-        return queryset if self.request.user.is_staff else queryset.filter(
-            resource__is_active=True
-        )
-
-    def perform_create(self, serializer):
+    def get_resource(self):
         try:
             resource = Resource.objects.get(id=self.kwargs.get("resource_pk"))
 
@@ -99,6 +90,14 @@ class AllocationViewSet(mixins.CreateModelMixin,
 
         except Resource.DoesNotExist:
             raise Http404
+
+        return resource
+
+    def get_queryset(self):
+        return self.queryset.filter(resource=self.get_resource())
+
+    def perform_create(self, serializer):
+        resource = self.get_resource()
 
         if not resource.is_active:
             raise ValidationError(
