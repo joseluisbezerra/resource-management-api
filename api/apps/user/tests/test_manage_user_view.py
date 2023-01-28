@@ -47,6 +47,7 @@ class GetProfileTests(APITestCase):
         self.assertEqual(
             response.data,
             {
+                'id': self.user.id,
                 'name': self.user.name,
                 'email': self.user.email
             }
@@ -73,8 +74,8 @@ class UpdateProfileTests(APITestCase):
 
         response = self.client.put(
             ME_URL,
-            data=payload,
-            format='multipart'
+            data=json.dumps(payload),
+            content_type='application/json'
         )
 
         self.user.refresh_from_db()
