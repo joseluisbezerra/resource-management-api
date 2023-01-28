@@ -1,20 +1,24 @@
-from api.apps.resource_allocation.serializers import ResourceSerializer
 from api.apps.utils.permissions import IsAdminOrReadOnly
+from api.apps.resource_allocation.serializers import (
+    ResourceSerializer,
+    AllocationSerializer
+)
 from api.apps.core.models import (
     Resource,
     Allocation
 )
 
 from django.db.models import Q
+from django.http.response import Http404
 from django.db.models.deletion import ProtectedError
 
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 
 
 class ResourceViewSet(viewsets.ModelViewSet):
-    queryset = Resource.objects.all()
+    queryset = Resource.objects.order_by('id')
     serializer_class = ResourceSerializer
     permission_classes = (
         IsAuthenticated,
@@ -22,7 +26,7 @@ class ResourceViewSet(viewsets.ModelViewSet):
     )
 
     def get_queryset(self):
-        queryset = self.queryset.order_by('id')
+        queryset = self.queryset
 
         if self.action == 'list':
             status_list = self.request.query_params.getlist('status')
@@ -67,3 +71,45 @@ class ResourceViewSet(viewsets.ModelViewSet):
                     "detail": "Cannot delete because there are allocations linked to the resource."  # noqa: E501
                 }
             )
+
+
+class AllocationViewSet(mixins.CreateModelMixin,
+                        mixins.RetrieveModelMixin,
+                        mixins.UpdateModelMixin,
+                        mixins.ListModelMixin,
+                        viewsets.GenericViewSet):
+    queryset = Allocation.objects.order_by('-allocation_date')
+    serializer_class = AllocationSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset.filter(
+            resource_id=self.kwargs.get("resource_pk")
+        )
+
+        return queryset if self.request.user.is_staff else queryset.filter(
+            resource__is_active=True
+        )
+
+    def perform_create(self, serializer):
+        try:
+            resource = Resource.objects.get(id=self.kwargs.get("resource_pk"))
+
+            if not resource.is_active and not self.request.user.is_staff:
+                raise Resource.DoesNotExist
+
+        except Resource.DoesNotExist:
+            raise Http404
+
+        if not resource.is_active:
+            raise ValidationError(
+                {'detail': 'Cannot create allocations for inactive resources.'}
+            )
+        elif resource.is_allocated:
+            raise ValidationError(
+                {'detail': 'Resource already allocated.'}
+            )
+
+        serializer.save(
+            resource=resource,
+            user=self.request.user
+        )
