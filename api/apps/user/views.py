@@ -30,7 +30,8 @@ class ManageUsersViewSet(viewsets.ModelViewSet):
         queryset = self.queryset
 
         if self.action == 'list':
-            types = self.request.query_params.getlist('type')
+            status = self.request.query_params.get('status')
+            type = self.request.query_params.get('type')
             name = self.request.query_params.get('name')
 
             query = Q()
@@ -38,14 +39,17 @@ class ManageUsersViewSet(viewsets.ModelViewSet):
             if name:
                 query &= Q(name__unaccent__icontains=name)
 
-            if types:
-                if 'active' in types:
+            if status:
+                if 'active' == status:
                     query &= Q(is_active=True)
-                elif 'inactive' in types:
+                elif 'inactive' == status:
                     query &= Q(is_active=False)
 
-                if 'admin' in types:
+            if type:
+                if 'admin' == type:
                     query &= Q(is_staff=True)
+                elif 'common' == type:
+                    query &= Q(is_staff=False)
 
             queryset = queryset.filter(query)
 

@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils.timezone import now
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
@@ -71,6 +72,7 @@ class Resource(Base):
 
 class Allocation(Base):
     resource = models.ForeignKey(Resource, on_delete=models.PROTECT)
+    allocation_date = models.DateTimeField(default=now, blank=True)
     return_date = models.DateTimeField(blank=True, null=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

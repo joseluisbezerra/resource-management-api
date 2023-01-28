@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'api.apps.utils.apps.UtilsConfig',
     'api.apps.core.apps.CoreConfig',
     'api.apps.user.apps.UserConfig',
+    'api.apps.resource_allocation.apps.ResourceAllocationConfig'
 ]
 
 MIDDLEWARE = [
