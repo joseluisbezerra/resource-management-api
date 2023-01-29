@@ -121,6 +121,10 @@ REST_FRAMEWORK = {
     )
 }
 
+# Documentation
+
+SWAGGER_YAML_FILE = BASE_DIR / 'documentation/v1.yaml'
+
 # Static files (CSS, JavaScript, Images)
 
 STATIC_URL = 'static/'
