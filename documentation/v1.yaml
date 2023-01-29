@@ -1,0 +1,973 @@
+openapi: 3.0.3
+info:
+  title: Resource Management API
+  description: |-
+    Documentação de uma API REST de gerenciamento de recursos
+  version: 1.0.0
+servers:
+  - url: http://127.0.0.1:8000/api/v1/
+tags:
+  - name: Usuário
+    description: Operações sobre usuário
+  - name: Recurso
+    description: Operações sobre recurso
+  - name: Alocação
+    description: Operações sobre alocação
+paths:
+  /users/token/:
+    post:
+      tags:
+        - Usuário
+      summary: Obtenção da credenciais de autenticação no sistema
+      description: Obtenção dos tokens de acesso e atualização
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: E-mail do usuário
+                  example: foobar@gmail.com
+                password:
+                  type: string
+                  format: password
+                  description: Senha do usuário
+                  example: foobar123
+        required: true
+      responses:
+        '200':
+          description: Sucesso na obtenção das credenciais de acesso 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjY0Mjk4ODE5LCJpYXQiOjE2NjQyOTg1MTksImp0aSI6ImNmZThkMDAwOWNjNjQxZDE5Y2EzODY4NWM5NjBmYjUzIiwidXNlcl9pZCI6NDczfQ.73o62Wv2r612Mg9XH3lBMXnifL5vv0tecdZzk1O_CiQ
+                    description: Token de acesso
+                  refresh:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY2NDM4NDkxOSwiaWF0IjoxNjY0Mjk4NTE5LCJqdGkiOiI2MzFhNTMxZTgzZjk0YWFkOTAwYzcyZDZlZDgyYmQ3OCIsInVzZXJfaWQiOjQ3M30.dAcocDF_brYNFMgDZbKGm1L2A926RjQJN-ujKKRyIBM
+                    description: Token de atualização
+        '400':
+          description: Requisição sem algum campo obrigatório
+        '401':
+          description: Credenciais inválidas ou usuário desativado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: No active account found with the given credentials
+
+  /users/token/refresh/:
+    post:
+      tags:
+        - Usuário
+      summary: Atualização do token de acesso
+      description: Obtenção de um novo token de acesso dado um token de atualização
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: string
+                  description: Token de atualização
+                  example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY0MzExODQ0NCwiaWF0IjoxNjQzMDMyMDQ0LCJqdGkiOiI2NGNlZjlkMGQ4ZjU0NjM4YTgzOTAzYTZhMmQ5ZtLfooNiIsInVzZXJfaWQiOjQ3M30.m4mbxQclAKjj3ICnJEXuGMxL9KdcOGo88AWdBcUNTrU
+        required: true
+      responses:
+        '200':
+          description: Sucesso na obtenção do token de acesso 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjY0Mjk4ODE5LCJpYXQiOjE2NjQyOTg1MTksImp0aSI6ImNmZThkMDAwOWNjNjQxZDE5Y2EzODY4NWM5NjBmYjUzIiwidXNlcl9pZCI6NDczfQ.73o62Wv2r612Mg9XH3lBMXnifL5vv0tecdZzk1O_CiQ
+                    description: Token de acesso
+        '400':
+          description: Requisição sem algum campo obrigatório
+        '401':
+          description: Token de atualização inválido ou expirado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    example: Token is invalid or expired
+                  code:
+                    type: string
+                    example: token_not_valid
+
+  /users/me/:
+    get:
+      tags:
+        - Usuário
+      summary: Acesso ao usuário logado
+      description: Obtenção dos dados do usuário logado
+      security:
+        - jwtAuth: []
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+
+    put:
+      tags:
+        - Usuário
+      summary: Atualização dos dados do usuário logado
+      description: Atualização dos dados do usuário logado
+      security:
+        - jwtAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do usuário
+                  example: Foo Bar
+                email:
+                  type: string
+                  description: E-mail do usuário
+                  example: foobar@gmail.com
+                password:
+                  type: string
+                  format: password
+                  example: 123456789
+                  description: Senha do usuário
+                is_staff:
+                  type: boolean
+                  example: true
+                  description: Campo habilidato caso o usuário logado seja admin
+                is_active:
+                  type: boolean
+                  example: true
+                  description: Campo habilidato caso o usuário logado seja admin
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Problema de validação em algum campo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+
+    patch:
+      tags:
+        - Usuário
+      summary: Atualização parcial dos dados do usuário logado
+      description: Atualização parcial dos dados do usuário logado
+      security:
+        - jwtAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do usuário
+                  example: Foo Bar
+                email:
+                  type: string
+                  description: E-mail do usuário
+                  example: foobar@gmail.com
+                password:
+                  type: string
+                  format: password
+                  description: Senha do usuário
+                is_staff:
+                  type: boolean
+                  example: true
+                  description: Campo habilidato caso o usuário logado seja admin
+                is_active:
+                  type: boolean
+                  example: true
+                  description: Campo habilidato caso o usuário logado seja admin
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Problema de validação em algum campo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+
+  /users/:
+    get:
+      tags:
+        - Usuário
+      summary: Listagem de usuários
+      description: Retorna uma lista com os usuários cadastrados, disponível apenas para usuários administradores
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: name
+          required: false
+          in: query
+          description: Nome dos usuários
+          type: string
+        - name: status
+          required: false
+          in: query
+          description: Status dos usuários
+          schema:
+            type: string
+            enum:
+              - active
+              - inactive
+        - name: type
+          required: false
+          in: query
+          description: Tipo dos usuários
+          schema:
+            type: string
+            enum:
+              - admin
+              - common
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '403':
+          description: Usuário logado não tem permissão, ou seja, não é administrador
+
+    post:
+      tags:
+        - Usuário
+      summary: Criação de usuário
+      description: Criação de um usuário, disponível apenas para usuários administradores
+      security:
+        - jwtAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do usuário
+                  example: Foo Bar
+                email:
+                  type: string
+                  description: E-mail do usuário
+                  example: foobar@gmail.com
+                password:
+                  type: string
+                  format: password
+                  description: Senha do usuário
+                is_staff:
+                  type: boolean
+                  example: true
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Problema de validação em algum campo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '403':
+          description: Usuário logado não tem permissão, ou seja, não é administrador
+
+  /users/{id}/:
+    get:
+      tags:
+        - Usuário
+      summary: Acesso a um usuário
+      description: Obtenção dos dados de um usuário, disponível apenas para usuários administradores
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Id do usuário
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '403':
+          description: Usuário logado não tem permissão, ou seja, não é administrador
+        '404':
+          description: Registro não encontrado
+
+    put:
+      tags:
+        - Usuário
+      summary: Atualização de um usuário
+      description: Atualização dos dados de um usuário, disponível apenas para usuários administradores
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Id do usuário
+          required: true
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do usuário
+                  example: Foo Bar
+                email:
+                  type: string
+                  description: E-mail do usuário
+                  example: foobar@gmail.com
+                password:
+                  type: string
+                  format: password
+                  description: Senha do usuário
+                is_staff:
+                  type: boolean
+                  example: true
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Problema de validação em algum campo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '403':
+          description: Usuário logado não tem permissão, ou seja, não é administrador
+        '404':
+          description: Registro não encontrado
+
+    patch:
+      tags:
+        - Usuário
+      summary: Atualização parcial de um usuário
+      description: Atualização parcial dos dados de um usuário, disponível apenas para usuários administradores
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Id do usuário
+          required: true
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do usuário
+                  example: Foo Bar
+                email:
+                  type: string
+                  description: E-mail do usuário
+                  example: foobar@gmail.com
+                password:
+                  type: string
+                  format: password
+                  description: Senha do usuário
+                is_staff:
+                  type: boolean
+                  example: true
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Problema de validação em algum campo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '403':
+          description: Usuário logado não tem permissão, ou seja, não é administrador
+        '404':
+          description: Registro não encontrado
+
+    delete:
+      tags:
+        - Usuário
+      summary: Deleção de um usuário
+      description: Deleção dos dados de um usuário, disponível apenas para usuários administradores
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Id do usuário
+          required: true
+          type: integer
+      responses:
+        '204':
+          description: Sucesso na operação
+        '400':
+          description: O usuário tem alocações vinculadas
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '403':
+          description: Usuário logado não tem permissão, ou seja, não é administrador
+        '404':
+          description: Registro não encontrado
+
+  /resources/:
+    get:
+      tags:
+        - Recurso
+      summary: Listagem de recursos
+      description: Retorna uma lista com os recursos ativos cadastrados. Caso o usuário logado seja administrador, também será listado os recursos inativos
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: name
+          required: false
+          in: query
+          description: Nome dos recursos
+          type: string
+        - name: status[]
+          required: false
+          in: query
+          description: Lista com status dos recursos, os status active e inactive estão disponível apenas para usuários administradores usarem.
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - active
+                - inactive
+                - allocated
+                - unallocated
+          collectionFormat: multi
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Resource'
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+
+    post:
+      tags:
+        - Recurso
+      summary: Criação de recurso
+      description: Criação de recurso, disponível apenas para usuários administradores
+      security:
+        - jwtAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do recurso
+                  example: Foo Bar
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '201':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Resource'
+        '400':
+          description: Problema de validação em algum campo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '403':
+          description: Usuário logado não tem permissão, ou seja, não é administrador
+
+  /resources/{id}/:
+    get:
+      tags:
+        - Recurso
+      summary: Acesso a um recurso
+      description: Obtenção dos dados de um recurso ativo. Caso o usuário logado seja administrador, os recursos inativos também vão estar disponíveis.
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Id do recurso
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Resource'
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '404':
+          description: Registro não encontrado
+
+    put:
+      tags:
+        - Recurso
+      summary: Atualização de um recurso
+      description: Atualização dos dados de um recurso, disponível apenas para usuários administradores
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Id do recurso
+          required: true
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do recurso
+                  example: Foo Bar
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Resource'
+        '400':
+          description: Problema de validação em algum campo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '403':
+          description: Usuário logado não tem permissão, ou seja, não é administrador
+        '404':
+          description: Registro não encontrado
+
+    patch:
+      tags:
+        - Recurso
+      summary: Atualização parcial de um recurso
+      description: Atualização parcial dos dados de um recurso, disponível apenas para usuários administradores
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Id do recurso
+          required: true
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Nome do recurso
+                  example: Foo Bar
+                is_active:
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Resource'
+        '400':
+          description: Problema de validação em algum campo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '403':
+          description: Usuário logado não tem permissão, ou seja, não é administrador
+        '404':
+          description: Registro não encontrado
+
+    delete:
+      tags:
+        - Recurso
+      summary: Deleção de um recurso
+      description: Deleção dos dados de um recurso, disponível apenas para usuários administradores
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Id do recurso
+          required: true
+          type: integer
+      responses:
+        '204':
+          description: Sucesso na operação
+        '400':
+          description: O recurso tem alocações vinculadas
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '403':
+          description: Usuário logado não tem permissão, ou seja, não é administrador
+        '404':
+          description: Registro não encontrado
+
+  /resources/{resource_id}/allocations/:
+    get:
+      tags:
+        - Alocação
+      summary: Listagem de alocações de um recurso
+      description: Retorna uma lista com as alocações de um recurso ativo. Caso o usuário logado seja administrador, as alocações de recursos inativos poderão ser acessadas.
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: resource_id
+          in: path
+          description: Id do recurso
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Allocation'
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '404':
+          description: Recurso inexistente ou inativo (caso o usuário não seja administrador)
+
+    post:
+      tags:
+        - Alocação
+      summary: Criação de alocação para recurso ativo
+      description: Criação de alocação para recurso ativo, caso o recurso já não esteja alocado.
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: resource_id
+          in: path
+          description: Id do recurso
+          required: true
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                return_date:
+                  type: string
+                  format: datetime
+                  description: Data e horário da devolução do recurso, campo não obrigatório
+                  example: "2023-01-29T20:53:06.459248-03:00"
+                allocation_date:
+                  type: string
+                  format: datetime
+                  description: Data e horário da alocação do recurso, caso não seja informado pegará a data e horário atuais.
+                  example: "2023-01-28T17:53:05.459248-03:00"
+      responses:
+        '201':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Allocation'
+        '400':
+          description: Problema de validação em algum campo, recurso já está alocado ou inativo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '404':
+          description: Recurso inexistente ou inativo (caso o usuário não seja administrador)
+
+  /resources/{resource_id}/allocations/{allocation_id}/:
+    get:
+      tags:
+        - Alocação
+      summary: Acesso a uma alocações de um recurso
+      description: Obtenção dos dados de uma alocação de um recurso ativo. Caso o usuário logado seja administrador, alocações de recursos inativos também vão estar disponíveis.
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: resource_id
+          in: path
+          description: Id do recurso
+          required: true
+          type: integer
+        - name: allocation_id
+          in: path
+          description: Id da alocação
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Allocation'
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '404':
+          description: Recurso inexistente ou inativo (caso o usuário não seja administrador), alocação inexistente
+
+    put:
+      tags:
+        - Alocação
+      summary: Edição de uma alocações de um recurso
+      description: Edição dos dados de uma alocação de um recurso ativo. Caso o usuário logado seja administrador, alocações de recursos inativos também vão estar disponíveis.
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: resource_id
+          in: path
+          description: Id do recurso
+          required: true
+          type: integer
+        - name: allocation_id
+          in: path
+          description: Id da alocação
+          required: true
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                return_date:
+                  type: string
+                  format: datetime
+                  description: Data e horário da devolução do recurso, campo não obrigatório
+                  example: "2023-01-29T20:53:06.459248-03:00"
+                allocation_date:
+                  type: string
+                  format: datetime
+                  description: Data e horário da alocação do recurso, caso não seja informado pegará a data e horário atuais.
+                  example: "2023-01-28T17:53:05.459248-03:00"
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Allocation'
+        '400':
+          description: Problema de validação em algum campo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '404':
+          description: Recurso inexistente ou inativo (caso o usuário não seja administrador), alocação inexistente
+
+    patch:
+      tags:
+        - Alocação
+      summary: Edição parcial de uma alocações de um recurso
+      description: Edição parcial dos dados de uma alocação de um recurso ativo. Caso o usuário logado seja administrador, alocações de recursos inativos também vão estar disponíveis.
+      security:
+        - jwtAuth: []
+      parameters:
+        - name: resource_id
+          in: path
+          description: Id do recurso
+          required: true
+          type: integer
+        - name: allocation_id
+          in: path
+          description: Id da alocação
+          required: true
+          type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                return_date:
+                  type: string
+                  format: datetime
+                  description: Data e horário da devolução do recurso, campo não obrigatório
+                  example: "2023-01-29T20:53:06.459248-03:00"
+                allocation_date:
+                  type: string
+                  format: datetime
+                  description: Data e horário da alocação do recurso, caso não seja informado pegará a data e horário atuais.
+                  example: "2023-01-28T17:53:05.459248-03:00"
+      responses:
+        '200':
+          description: Sucesso na operação 
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Allocation'
+        '400':
+          description: Problema de validação em algum campo
+        '401':
+          description: Credenciais inválidas ou não fornecidas
+        '404':
+          description: Recurso inexistente ou inativo (caso o usuário não seja administrador), alocação inexistente
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 13
+        name:
+          type: string
+          description: Nome do usuário
+          example: Foo Bar
+        email:
+          type: string
+          description: E-mail do usuário
+          example: foobar@gmail.com
+        is_staff:
+          type: boolean
+          example: true
+          description: Campo habilidato caso o usuário logado seja admin
+        is_active:
+          type: boolean
+          example: true
+          description: Campo habilidato caso o usuário logado seja admin
+    
+    Resource:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 2
+        name:
+          type: string
+          description: Nome do recurso
+          example: Foo Bar
+        is_active:
+          type: boolean
+          example: true
+          description: Campo habilidato caso o usuário logado seja admin
+        is_allocated:
+          type: boolean
+          example: false
+          description: Indica se o recurso está alocado ou não 
+
+    Allocation:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 5
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 13
+            name:
+              type: string
+              description: Nome do usuário
+              example: Foo Bar
+        return_date:
+          type: string
+          format: datetime
+          description: Data e horário da devolução do recurso
+          example: "2023-01-29T20:53:06.459248-03:00"
+        allocation_date:
+          type: string
+          format: datetime
+          description: Data e horário da alocação do recurso
+          example: "2023-01-28T17:53:05.459248-03:00"
+
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

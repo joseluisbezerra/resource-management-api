@@ -1,12 +1,18 @@
+from api.apps.utils.views import documentation
+
 from django.contrib import admin
 from django.urls import (
-    path,
-    include
+    include,
+    path
 )
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls)
+    # Django Admin
+    path('admin/', admin.site.urls),
+
+    # Documentation
+    path('documentation/', documentation, name="documentation")
 ]
 
 
